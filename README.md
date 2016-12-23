@@ -11,8 +11,9 @@ A little python module that helps mainly physicians with their praktika.
 
 ### How do I get set up? ###
 
+* you need a version of python3
 * you need sympy
-* and maybe a latex backend
+* and maybe a latex backend?
 
 ### How to use ###
 
