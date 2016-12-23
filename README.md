@@ -14,6 +14,11 @@ A little python module that helps mainly physicians with their praktika.
 * you need sympy
 * and maybe a latex backend
 
+### How to use ###
+
+* -> see inside errprop.py for a guide and an example at the bottom: you can run errprop.py
+* or use a more "complicated" example: example.py
+
 ### Contribution guidelines ###
 
 * Use at own risk.
