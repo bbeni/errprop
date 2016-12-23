@@ -71,14 +71,16 @@ def set_significant_digits(n):
 
 
 class ErrorPropagation():
-    """A simple class to simplify live as an errorpropagator. It should be able to calculate it as a number
-        and output relevant formulas in latex format"""
+    """A simple class to simplify live as an error propagator.
+		It is able to calculate it as a number and output 
+		relevant formulas in latex format"""
     
-    def __init__(self, expression, *args):
-        """expression: sympy expression.
-            args: the variables from the expression that have uncertainty on them."""
+    def __init__(self, expression, *symbols_w_errors):
+        """expression -- sympy expression.
+            symbols_w_errors -- the symbols from the expression
+                                that have uncertainty on them."""
         self.exp = expression  
-        self.derivatives = {}  #partial derivatives of the inputs from args
+        self.derivatives = {}  #partial derivatives of the inputs from symbols_w_errors
         self.result = None     #the error propagation symbols
         self.errors = {}       #the error symbols (m_{k})
 
@@ -86,10 +88,10 @@ class ErrorPropagation():
         self.exp_numerical = "Not calculated yet"
         self.err_numerical = "Not calculated yet"
 
-        for a in args:
+        for a in symbols_w_errors:
             self.derivatives[a] = diff(self.exp, a)
             
-        for a in args:
+        for a in symbols_w_errors:
             self.errors[a] = Symbol( "m_{" + str(a) + "}" )
             
         self._evaluate()
@@ -136,26 +138,29 @@ class ErrorPropagation():
         """prints everything (latex formula, result, latex error prop formula, the error)
 			with print() in a nice format, ready to paste into a .tex file"""
 
-        end = self.formula_to_latex(align = align, symbol = symbol, values = values)
-        err_end = self.error_to_latex(align=align, symbol=symbol, errors=errors, values=values, n_split=n_split)
+        end = self.formula_to_latex(align=align, symbol=symbol, values=values)
+        err_end = self.error_to_latex(align=align, symbol=symbol, errors=errors,
+                                        values=values, n_split=n_split)
 
         err_symb_str = "m_{" + str(symbol) + "}"
 
-        to_print= "\n".join([
+        to_print = "\n".join([
                    "------------------------------------------------",
                    end,
                    "",
                    err_end,
                    "\n$${} = {}\\%$$".format(err_symb_str, percent_error(self.exp_numerical, self.err_numerical )),
                     "------------------------------------------------"])
-        ## if a filename is give, we append it to the file instead
+					
+        # if a filename is give, we append it to the file instead
         if filename: 
             with open(filename, "a") as f:
                 f.write(to_print)
-        else: print(to_print)
+        else:
+             print(to_print)
 
         
-    def formula_to_latex(self, align = False, symbol = "value", values = None):
+    def formula_to_latex(self, align=False, symbol="value", values=None):
         """returns the input formula as a latex of the form 'a = b'.
             If values are supplied, it is evaluated and
             returnd in the form 'a = b = Number' """
@@ -220,18 +225,17 @@ class ErrorPropagation():
     
 
 if __name__ == "__main__":
+    print("you are running the module. this is an example output:")
     
-    print("you run the module. THIS IS AN EXAMPLE:")
-    
-    #from errprop import ErrorPropagation, error_symbols, symbols    
+    ##from errprop import ErrorPropagation, error_symbols, symbols
     from sympy import sqrt, cos
     
     
-    ## The variables that you are gonna use
+    # The variables that you are gonna use
     variables = a, b, gamma = symbols("a b \\gamma")
     that_have_uncertainty = (a, b, gamma)
     
-    ## The variables that have uncertainity need to be put into error_symbols()
+    # The variables that have uncertainty need to be put into error_symbols()
     err_variables = ma, mb, mgamma = error_symbols(*that_have_uncertainty)
     
     #you can now use the variables and invent your formula
@@ -239,10 +243,10 @@ if __name__ == "__main__":
     
     
     #the values and errors as numerical values in a dict
-    values = {a: 1.5, b:0.3, gamma:0.5*10**(-3)}
-    errors = {ma: 0.2, mb:0.01, mgamma:0.1*10**(-4)}
+    values = {a:1.5, b:0.3, gamma:0.5*10**(-3)}
+    errors = {ma:0.2, mb:0.01, mgamma:0.1*10**(-4)}
     
-    ##set the sig digits for printing latex
+    ##set the significant digits for printing latex
     set_significant_digits(3)
     
     ep = ErrorPropagation(formula, *that_have_uncertainty)
