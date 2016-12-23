@@ -33,14 +33,10 @@ Bugs:
     very long formulas are only split once (for latex page)
 
 """
-
 from sympy import diff, symbols, Symbol, latex, sqrt, simplify, evalf
-from sympy.abc import *
 from sympy import srepr
 
-
 precision = 4
-
 
 aligns = """\\begin{{align*}}\n{}\n\\end{{align*}}"""
 base_string1 = "{} = {} = {}"
@@ -51,7 +47,6 @@ def to_scientific_latex(number, sig_digits = 3):
     exponent = int(floor(log10(abs(number))))
     mantissa = float(number)/10**exponent
     return "{mant:.{prec}f}\\times 10^{{{exponent}}}".format(exponent = exponent, mant = mantissa, prec = sig_digits-1)
-
 
 def error_symbols(*args):
     return (Symbol("m_{" + str(a) + "}") for a in args)
@@ -65,7 +60,7 @@ def dict_latex(values):
     lat = "\\\\\n".join(strings)
     return aligns.format(lat)
     
-
+    
 def percent_error(value, error):
     return round(100.0*error/value, 2)
 
@@ -115,16 +110,8 @@ class ErrorPropagation():
             
     def calculate_error_numerical(self, errors={}, values={}):
         '''errors = {m_a:3.0, m_b:0.1} values = {a:20, b:10}'''
-        from copy import deepcopy
-        r = deepcopy(self.result)
-
-        for k, v in values.items():
-            r = r.subs(k, v)
-
-        for k, v in errors.items():
-            r = r.subs(k, v)
-
-        self.err_numerical = r.evalf()
+        r = self.result
+        self.err_numerical = r.subs(values).subs(errors).evalf()
         return self.err_numerical
 
     def calculate(self, errors={}, values={}):
@@ -145,30 +132,33 @@ class ErrorPropagation():
         part2 = self.result.args[0].args[split_at:]
         return (sum(part1), sum(part2))
 
-    def print_all(self, errors, values, symbol = "", super_latex = True, python_exp = False, n_split = 0):
+    def print_all(self, errors, values, symbol="values", align=True, n_split=0, filename=None):
         """prints everything (latex formula, result, latex error prop formula, the error)
 			with print() in a nice format, ready to paste into a .tex file"""
 
-        end = self.formula_to_latex(align = super_latex, symbol = symbol, values = values)
-        err_end = self.error_to_latex(align = super_latex, symbol = symbol, errors = errors, values = values)
+        end = self.formula_to_latex(align = align, symbol = symbol, values = values)
+        err_end = self.error_to_latex(align=align, symbol=symbol, errors=errors, values=values, n_split=n_split)
 
         err_symb_str = "m_{" + str(symbol) + "}"
 
-        print("------------------------------------------------")
-        print(end)
-        print()
-        print(err_end)
-        print("\n$${} = {}\\%$$".format(err_symb_str, percent_error(self.exp_numerical, self.err_numerical )))
-        print()
+        to_print= "\n".join([
+                   "------------------------------------------------",
+                   end,
+                   "",
+                   err_end,
+                   "\n$${} = {}\\%$$".format(err_symb_str, percent_error(self.exp_numerical, self.err_numerical )),
+                    "------------------------------------------------"])
+        ## if a filename is give, we append it to the file instead
+        if filename: 
+            with open(filename, "a") as f:
+                f.write(to_print)
+        else: print(to_print)
 
-
-    def formula_to_latex(self, align = False, symbol = "", values = None):
+        
+    def formula_to_latex(self, align = False, symbol = "value", values = None):
         """returns the input formula as a latex of the form 'a = b'.
             If values are supplied, it is evaluated and
             returnd in the form 'a = b = Number' """
-
-        if symbol == "":
-            symbol = "value"
 
         if values:
             if not type(values) is dict:
@@ -189,13 +179,10 @@ class ErrorPropagation():
         return result
 
         ##Todo: refactor
-    def error_to_latex(self, align = False, symbol = "", values = None, errors = None, n_split = 4):
+    def error_to_latex(self, align = False, symbol = "value", values = None, errors = None, n_split=4):
         """returns the error formula as a latex of the form 'a = b'.
             If values and errors are supplied, it is evaluated and
             returnd in the form 'Error of a = some latex = Error' """
-
-        if symbol == "":
-            symbol = "value"
 
         err_symbol_str = "m_{" + str(symbol) + "}"
         err_exp_latex = self.latex_propagated()
@@ -206,7 +193,6 @@ class ErrorPropagation():
             str_a = latex(sqrt(a))
             str_b = "\\overline{+" + latex(b) + "}"
             err_exp_latex = "{}\\\\\n{}".format(str_a, str_b)
-
 
         if values and errors:
             if not type(values) is dict:
@@ -232,8 +218,6 @@ class ErrorPropagation():
 
         return result
     
-
-
 
 if __name__ == "__main__":
     
@@ -263,8 +247,5 @@ if __name__ == "__main__":
     
     ep = ErrorPropagation(formula, *that_have_uncertainty)
     ep.print_all(errors, values, symbol = "Q'_{\Gamma}")
-
-
-
 
 
