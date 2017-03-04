@@ -48,6 +48,8 @@ base_string2 = "{} = {}"
     
 def to_scientific_latex(number, sig_digits = 3):
     from math import log10, floor
+    if number == 0:
+        return "{mant:.{prec}f}".format(mant=0, prec = sig_digits-1)
     exponent = int(floor(log10(abs(number))))
     mantissa = float(number)/10**exponent
     return "{mant:.{prec}f}\\times 10^{{{exponent}}}".format(exponent = exponent, mant = mantissa, prec = sig_digits-1)
