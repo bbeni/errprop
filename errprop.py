@@ -78,7 +78,7 @@ class ErrorPropagation():
     """A simple class to simplify live as an errorpropagator. It should be able to calculate it as a number
         and output relevant formulas in latex format"""
     
-    def __init__(self, expression, *args):
+    def __init__(self, expression, *symbols_w_errors):
         """expression: sympy expression.
             args: the variables from the expression that have uncertainty on them."""
         self.exp = expression  
